@@ -139,7 +139,7 @@ function NavContent() {
               </Link>
 
               <Link
-                href="https://app.firebird.finance/swap"
+                href="https://app.uniswap.org/#/swap?chain=polygon"
                 target="_blank"
               >
                 <Typography variant="h6">
