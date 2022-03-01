@@ -83,20 +83,20 @@ function OhmMenu() {
               <Paper className="ohm-menu" elevation={1}>
                 <Box component="div" className="buy-tokens">
                   <Link
-                    href={`https://pancakeswap.finance/swap?outputCurrency=0xba96731324de188ebc1ed87ca74544ddebc07d7f`}
+                    href={`https://app.uniswap.org/#/swap?chain=polygon`}
                     target="_blank"
                     rel="noreferrer"
                   >
                     <Button size="large" variant="contained" color="secondary" fullWidth>
                       <Typography align="left">
-                        Buy on Firebird Exchange
+                        Buy on Uniswap V3
                         <SvgIcon component={ArrowUpIcon} htmlColor="#A3A3A3" />
                       </Typography>
                     </Button>
                   </Link>
 
                   <Link
-                    href={`https://www.dextools.io/app/bsc/pair-explorer/0x44f382cec44c33067cb12fcfc08457eb6734be02`}
+                    href={`https://www.dextools.io/app/polygon/pair-explorer/0x37e5c39d32306f51c441bab172292b5deb01ff24`}
                     target="_blank"
                     rel="noreferrer"
                   >
