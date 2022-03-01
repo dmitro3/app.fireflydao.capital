@@ -3,7 +3,7 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 const MESSAGES_MAX_DISPLAY_DURATION = 60000;
 let nb_messages = 0;
 
-export interface Message {
+interface Message {
   id: number;
   title: string;
   text: string;
@@ -11,14 +11,12 @@ export interface Message {
   created: number;
   open: boolean;
 }
-
 interface MessagesState {
   items: Array<Message>;
 }
-
 // Adds a message to the store
 const createMessage = function (state: MessagesState, severity: string, title: string, text: string) {
-  const message: Message = {
+  let message: Message = {
     id: nb_messages++,
     severity,
     title,
@@ -52,7 +50,7 @@ const messagesSlice = createSlice({
     },
     // Finds and removes obsolete messages
     handle_obsolete(state) {
-      const activeMessages = state.items.filter(message => {
+      let activeMessages = state.items.filter(message => {
         return Date.now() - message.created < MESSAGES_MAX_DISPLAY_DURATION;
       });
       if (state.items.length != activeMessages.length) {

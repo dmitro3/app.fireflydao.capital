@@ -1,9 +1,6 @@
 import { JsonRpcProvider, StaticJsonRpcProvider } from "@ethersproject/providers";
 import { BigNumber, BigNumberish } from "ethers";
-import { NetworkId } from "src/constants";
-import { Bond } from "src/lib/Bond";
-
-import { IBondV2 } from "./BondSliceV2";
+import { NetworkId } from "src/constants"; 
 
 export interface IJsonRPCError {
   readonly message: string;
@@ -108,48 +105,4 @@ export interface IZapAsyncThunk extends IBaseAddressAsyncThunk {
 }
 
 // Account Slice
-
-export interface ICalcUserBondDetailsAsyncThunk extends IBaseAddressAsyncThunk, IBaseBondAsyncThunk {}
-
-// Bond Slice
-
-export interface IBaseBondAsyncThunk extends IBaseAsyncThunk {
-  readonly bond: Bond;
-}
-
-export interface IBondV2AysncThunk extends IBaseAddressAsyncThunk {
-  readonly bond: IBondV2;
-}
-
-export interface IBondV2IndexAsyncThunk extends IBaseAddressAsyncThunk {
-  readonly bondIndex: number;
-}
-
-export interface IBondV2PurchaseAsyncThunk extends IBaseAddressAsyncThunk {
-  readonly bond: IBondV2;
-  readonly maxPrice: BigNumberish;
-  readonly amount: BigNumberish;
-}
-
-export interface IApproveBondAsyncThunk extends IBaseBondAsyncThunk {
-  readonly address: string;
-}
-
-export interface ICalcBondDetailsAsyncThunk extends IBaseBondAsyncThunk {
-  readonly value: string;
-}
-
-export interface IBondAssetAsyncThunk extends IBaseBondAsyncThunk, IValueAsyncThunk {
-  readonly slippage: number;
-}
-
-export interface IRedeemBondAsyncThunk extends IBaseBondAsyncThunk {
-  readonly address: string;
-  readonly autostake: boolean;
-}
-
-export interface IRedeemAllBondsAsyncThunk extends IBaseAsyncThunk {
-  readonly bonds: Bond[];
-  readonly address: string;
-  readonly autostake: boolean;
-}
+ 

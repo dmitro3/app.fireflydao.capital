@@ -18,9 +18,12 @@ module.exports = {
     "plugin:@typescript-eslint/recommended",
     "plugin:@typescript-eslint/eslint-recommended",
   ],
-  plugins: ["@typescript-eslint", "simple-import-sort", "unused-imports"],
+  plugins: ["@typescript-eslint",],
   rules: {
-    "prettier/prettier": ["error"],
+    "prettier/prettier": ["error",
+    {
+      "endOfLine": "auto"
+    },],
     "import/prefer-default-export": "off",
     "prefer-destructuring": "off",
     "prefer-template": "off",
@@ -33,9 +36,7 @@ module.exports = {
     "no-underscore-dangle": "off",
     "no-nested-ternary": "off",
     "no-restricted-syntax": "off",
-    "no-plusplus": "off",
-    "simple-import-sort/imports": "error",
-    "unused-imports/no-unused-imports": "error",
+    "no-plusplus": "off", 
     "@typescript-eslint/explicit-function-return-type": "off",
     "@typescript-eslint/explicit-module-boundary-types": "off",
     "@typescript-eslint/ban-ts-comment": "off",

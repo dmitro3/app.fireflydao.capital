@@ -1,5 +1,4 @@
 import { createTheme, responsiveFontSizes } from "@material-ui/core/styles";
-
 import fonts from "./fonts";
 import commonSettings, { handleBackdropFilter } from "./global.js";
 
@@ -7,42 +6,33 @@ import commonSettings, { handleBackdropFilter } from "./global.js";
 // then set the values in darkTheme using the global color variables
 
 const darkTheme = {
-  color: "#FCFCFC",
-  gold: "#F8CC82",
-  gray: "#A3A3A3",
-  textHighlightColor: "#F4D092",
-  backgroundColor: "rgba(8, 15, 53, 1)",
-  background: `
-    linear-gradient(180deg, rgba(8, 15, 53, 0), rgba(0, 0, 10, 0.9)),
-    linear-gradient(333deg, rgba(153, 207, 255, 0.2), rgba(180, 255, 217, 0.08)),
-    radial-gradient(circle at 77% 89%, rgba(125, 163, 169, 0.8), rgba(125, 163, 169, 0) 50%),
-    radial-gradient(circle at 15% 95%, rgba(125, 163, 169, 0.8), rgba(125, 163, 169, 0) 43%),
-    radial-gradient(circle at 65% 23%, rgba(137, 151, 119, 0.4), rgba(137, 151, 119, 0) 70%),
-    radial-gradient(circle at 10% 0%, rgba(187, 211, 204, 0.33), rgba(187,211,204,0) 35%),
-    radial-gradient(circle at 11% 100%, rgba(131, 165, 203, 0.3), rgba(131, 165, 203, 0) 30%)
-    `,
-  paperBg: "rgba(54, 56, 64, 0.6)",
+  color: "#D0DCE8",
+  gold: "#ff9800",
+  gray: "#D0DCE8B2",
+  textHighlightColor: "#ff9800",
+  backgroundColor: `#00020B`,
+  background: ``,
+  paperBg: "",
   modalBg: "#24242699",
   popoverBg: "rgba(54, 56, 64, 0.99)",
-  menuBg: handleBackdropFilter("rgba(54, 56, 64, 0.5)"),
-  backdropBg: "rgba(54, 56, 64, 0.5)",
+  menuBg: handleBackdropFilter("rgba(36, 40, 49, 1)"),
+  backdropBg: "rgba(13, 15, 25, 1)",
   largeTextColor: "#F4D092",
-  activeLinkColor: "#F5DDB4",
+  activeLinkColor: "#00FFBF",
   activeLinkSvgColor:
     "brightness(0) saturate(100%) invert(84%) sepia(49%) saturate(307%) hue-rotate(326deg) brightness(106%) contrast(92%)",
   primaryButtonColor: "#333333",
-  primaryButtonBG: "#F4D092",
-  primaryButtonHoverBG: "#EDD8B4",
+  primaryButtonBG: "#00FFBF",
+  primaryButtonHoverBG: "#00FFBF",
   secondaryButtonHoverBG: "rgba(54, 56, 64, 1)",
-  outlinedPrimaryButtonHoverBG: "#F8CC82",
+  outlinedPrimaryButtonHoverBG: "#ff9800",
   outlinedPrimaryButtonHoverColor: "#333333",
   outlinedSecondaryButtonHoverBG: "transparent",
-  outlinedSecondaryButtonHoverColor: "#F8CC82", //gold
+  outlinedSecondaryButtonHoverColor: "#ff9800", //gold
   containedSecondaryButtonHoverBG: "rgba(255, 255, 255, 0.15)",
   graphStrokeColor: "rgba(255, 255, 255, .1)",
   gridButtonHoverBackground: "rgba(255, 255, 255, 0.6)",
   gridButtonActiveBackground: "#00000038",
-  switchBg: "#333333",
 };
 
 export const dark = responsiveFontSizes(
@@ -73,25 +63,9 @@ export const dark = responsiveFontSizes(
         highlight: darkTheme.textHighlightColor,
       },
       typography: {
-        fontFamily: "Square",
+        fontFamily: "Montserrat",
       },
       overrides: {
-        MuiSwitch: {
-          colorPrimary: {
-            color: darkTheme.color,
-            "&$checked": {
-              color: darkTheme.switchBg,
-              "& + $track": {
-                backgroundColor: darkTheme.color,
-                borderColor: darkTheme.color,
-              },
-            },
-          },
-          track: {
-            border: `1px solid ${darkTheme.color}`,
-            backgroundColor: darkTheme.switchBg,
-          },
-        },
         MuiCssBaseline: {
           "@global": {
             "@font-face": fonts,
@@ -108,7 +82,7 @@ export const dark = responsiveFontSizes(
         },
         MuiSelect: {
           select: {
-            color: "#F8CC82",
+            color: "#ff9800",
           },
         },
         MuiPaper: {
@@ -120,9 +94,6 @@ export const dark = responsiveFontSizes(
             "&.ohm-modal": {
               backgroundColor: darkTheme.modalBg,
             },
-            "&.MuiPaper-root.tooltip-container": {
-              backgroundColor: darkTheme.paperBg,
-            },
             "&.ohm-menu": {
               backgroundColor: darkTheme.menuBg,
               backdropFilter: "blur(33px)",
@@ -130,7 +101,7 @@ export const dark = responsiveFontSizes(
             "&.ohm-popover": {
               backgroundColor: darkTheme.popoverBg,
               color: darkTheme.color,
-              // backdropFilter: "blur(15px)",
+              backdropFilter: "blur(15px)",
             },
           },
         },
@@ -142,6 +113,8 @@ export const dark = responsiveFontSizes(
         MuiLink: {
           root: {
             color: darkTheme.color,
+            padding: "0.5rem 0.5rem 0.5rem 1.2rem",
+            width: "100%",
             "&:hover": {
               color: darkTheme.textHighlightColor,
               textDecoration: "none",
@@ -150,8 +123,12 @@ export const dark = responsiveFontSizes(
               },
             },
             "&.active": {
-              color: darkTheme.color,
-              textDecoration: "underline",
+              color: `#e64242!important`,
+              background: `#13182357`,
+              boxShadow: `12px 12px 22px rgba(0, 0, 0, 0.25)`,
+              backdropFilter: `blur(15px)`,
+              borderRadius: `63px`,
+              border: `1px solid #13cfcf11`,
             },
           },
         },
@@ -277,14 +254,14 @@ export const dark = responsiveFontSizes(
             },
           },
           textPrimary: {
-            color: "#A3A3A3",
+            color: "#D0DCE8B2",
             "&:hover": {
               color: darkTheme.gold,
               backgroundColor: "#00000000",
             },
             "&:active": {
               color: darkTheme.gold,
-              borderBottom: "#F8CC82",
+              borderBottom: "#ff9800",
             },
           },
           textSecondary: {
@@ -297,7 +274,7 @@ export const dark = responsiveFontSizes(
         MuiTypography: {
           root: {
             "&.grid-message-typography": {
-              color: "#A3A3A3",
+              color: "#D0DCE8B2",
             },
             "&.chain-highlight": {
               color: "#DADADA",

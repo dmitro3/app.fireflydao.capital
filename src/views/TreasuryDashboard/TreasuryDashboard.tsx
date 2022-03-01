@@ -1,20 +1,16 @@
-import "./TreasuryDashboard.scss";
-
-import { Box, Container, Grid, useMediaQuery, Zoom } from "@material-ui/core";
-import { Metric, MetricCollection, Paper } from "@olympusdao/component-library";
-import { memo } from "react";
-
+import { memo } from "react"; 
+import { QueryClient, QueryClientProvider } from "react-query";
+import { Paper, Grid, Box, Zoom, Container, useMediaQuery, SvgIcon } from "@material-ui/core";
 import {
-  MarketValueGraph,
-  OHMStakedGraph,
-  ProtocolOwnedLiquidityGraph,
-  RiskFreeValueGraph,
-  RunwayAvailableGraph,
-  TotalValueDepositedGraph,
-} from "./components/Graph/Graph";
-import { BackingPerOHM, CircSupply, CurrentIndex, GOHMPrice, MarketCap, OHMPrice } from "./components/Metric/Metric";
+  MarketCap,
+  FIREFLYPrice,
+  NextRebase,
+  CircSupply,
+  BackingPerFIREFLY,
+  AverageFIREFLYHolding,
+} from "./components/Metric/Metric";
 
-const sharedMetricProps: PropsOf<typeof Metric> = { labelVariant: "h6", metricVariant: "h5" };
+import { FIREFLYPriceCard, RFVOfTreasuryAssetsCard, TotalLiquidityCard, MarketValueCard } from "./components/Card/Card";
 
 const TreasuryDashboard = memo(() => {
   const isSmallScreen = useMediaQuery("(max-width: 650px)");
@@ -30,79 +26,27 @@ const TreasuryDashboard = memo(() => {
       >
         <Box className="hero-metrics">
           <Paper className="ohm-card">
-            <MetricCollection>
-              <MarketCap {...sharedMetricProps} />
-              <OHMPrice {...sharedMetricProps} />
-              <GOHMPrice {...sharedMetricProps} className="wsoprice" />
-              <CircSupply {...sharedMetricProps} />
-              <BackingPerOHM {...sharedMetricProps} />
-              <CurrentIndex {...sharedMetricProps} />
-            </MetricCollection>
+            <Box display="flex" flexWrap="wrap" justifyContent="space-between" alignItems="center">
+              <MarketCap />
+              <FIREFLYPrice />
+              <NextRebase />  
+              <CircSupply />
+              <BackingPerFIREFLY />
+              <AverageFIREFLYHolding />
+            </Box>
           </Paper>
         </Box>
 
         <Zoom in={true}>
-          <Grid container spacing={2} className="data-grid">
+          <Grid container spacing={6} className="data-grid">
             <Grid item lg={6} md={6} sm={12} xs={12}>
-              <Paper className="ohm-card ohm-chart-card">
-                <TotalValueDepositedGraph />
-              </Paper>
+              <FIREFLYPriceCard />
             </Grid>
 
             <Grid item lg={6} md={6} sm={12} xs={12}>
-              <Paper className="ohm-card ohm-chart-card">
-                <MarketValueGraph />
-              </Paper>
+              <MarketValueCard />
             </Grid>
-
-            <Grid item lg={6} md={6} sm={12} xs={12}>
-              <Paper className="ohm-card ohm-chart-card">
-                <RiskFreeValueGraph />
-              </Paper>
-            </Grid>
-
-            <Grid item lg={6} md={6} sm={12} xs={12}>
-              <Paper className="ohm-card ohm-chart-card">
-                <ProtocolOwnedLiquidityGraph />
-              </Paper>
-            </Grid>
-
-            {/*  Temporarily removed until correct data is in the graph */}
-            {/* <Grid item lg={6} md={12} sm={12} xs={12}>
-              <Paper className="ohm-card">
-                <Chart
-                  type="bar"
-                  data={data}
-                  dataKey={["holders"]}
-                  headerText="Holders"
-                  stroke={[theme.palette.text.secondary]}
-                  headerSubText={`${data.length > 0 && data[0].holders}`}
-                  bulletpointColors={bulletpoints.holder}
-                  itemNames={tooltipItems.holder}
-                  itemType={undefined}
-                  infoTooltipMessage={tooltipInfoMessages().holder}
-                  expandedGraphStrokeColor={theme.palette.graphStrokeColor}
-                  scale={undefined}
-                  color={undefined}
-                  stroke={undefined}
-                  dataFormat={undefined}
-                  isPOL={undefined}
-                  isStaked={undefined}
-                />
-              </Paper>
-            </Grid> */}
-
-            <Grid item lg={6} md={6} sm={12} xs={12}>
-              <Paper className="ohm-card ohm-chart-card">
-                <OHMStakedGraph />
-              </Paper>
-            </Grid>
-
-            <Grid item lg={6} md={6} sm={12} xs={12}>
-              <Paper className="ohm-card ohm-chart-card">
-                <RunwayAvailableGraph />
-              </Paper>
-            </Grid>
+ 
           </Grid>
         </Zoom>
       </Container>
@@ -110,4 +54,12 @@ const TreasuryDashboard = memo(() => {
   );
 });
 
-export default TreasuryDashboard;
+const queryClient = new QueryClient();
+
+// Normally this would be done
+// much higher up in our App.
+export default () => (
+  <QueryClientProvider client={queryClient}>
+    <TreasuryDashboard />
+  </QueryClientProvider>
+);

@@ -30,8 +30,7 @@ tests/e2e/videos
 build
 
 # misc
-.DS_Store
-.env
+.DS_Store 
 
 # debug
 npm-debug.log*

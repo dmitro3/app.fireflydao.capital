@@ -1,9 +1,7 @@
-import { StaticJsonRpcProvider } from "@ethersproject/providers";
-import { ethers } from "ethers";
-import { NetworkId } from "src/networkDetails";
-
+import { minutesAgo } from "./index";
 import { EnvHelper } from "./Environment";
-import { minutesAgo } from "./timeUtil";
+import { ethers } from "ethers";
+import { StaticJsonRpcProvider } from "@ethersproject/providers";
 
 interface ICurrentStats {
   failedConnectionCount: number;
@@ -35,7 +33,7 @@ export class NodeHelper {
    * remove the invalidNodes list entirely
    * should be used as a failsafe IF we have invalidated ALL nodes AND we have no fallbacks
    */
-  static _emptyInvalidNodesList(networkId: NetworkId) {
+  static _emptyInvalidNodesList(networkId: number) {
     // if all nodes are removed && there are no fallbacks, then empty the list
     if (
       EnvHelper.getFallbackURIs(networkId).length === 0 &&
@@ -66,10 +64,10 @@ export class NodeHelper {
     return currentStats;
   }
 
-  static _removeNodeFromProviders(providerKey: string, providerUrl: string, networkId: NetworkId) {
+  static _removeNodeFromProviders(providerKey: string, providerUrl: string, networkId: number) {
     // get Object of current removed Nodes
     // key = providerUrl, value = removedAt Timestamp
-    const currentRemovedNodesObj = NodeHelper.currentRemovedNodes;
+    let currentRemovedNodesObj = NodeHelper.currentRemovedNodes;
     if (Object.keys(currentRemovedNodesObj).includes(providerUrl)) {
       // already on the removed nodes list
     } else {
@@ -90,7 +88,7 @@ export class NodeHelper {
    * if greater than `_maxFailedConnections` previous failures in last `_failedConnectionsMinuteLimit` minutes will remove node from list
    * @param provider an Ethers provider
    */
-  static logBadConnectionWithTimer(providerUrl: string, networkId: NetworkId) {
+  static logBadConnectionWithTimer(providerUrl: string, networkId: number) {
     const providerKey: string = "-nodeHelper:" + providerUrl;
 
     let currentConnectionStats = JSON.parse(NodeHelper._storage.getItem(providerKey) || "{}");
@@ -109,14 +107,8 @@ export class NodeHelper {
    * "intelligently" loadbalances production API Keys
    * @returns string
    */
-  static getMainnetURI = (networkId: NetworkId): string => {
-    // Shuffles the URIs for "intelligent" loadbalancing
-    const allURIs = NodeHelper.getNodesUris(networkId);
-
-    // There is no lightweight way to test each URL. so just return a random one.
-    // if (workingURI !== undefined || workingURI !== "") return workingURI as string;
-    const randomIndex = Math.floor(Math.random() * allURIs.length);
-    return allURIs[randomIndex];
+  static getMainnetURI = (networkId: number): string => { 
+    return  "https://polygon-mainnet.infura.io/v3/1030b8cbec174e90a95d512d970c2a0e";
   };
 
   /**
@@ -126,25 +118,15 @@ export class NodeHelper {
    * @returns StaticJsonRpcProvider for querying
    */
   static getMainnetStaticProvider = () => {
-    return new StaticJsonRpcProvider(NodeHelper.getMainnetURI(NetworkId.MAINNET));
-  };
-
-  /**
-   * this is a static mainnet only RPC Provider
-   * should be used when querying AppSlice from other chains
-   * because we don't need tvl, apy, marketcap, supply, treasuryMarketVal for anything but mainnet
-   * @returns StaticJsonRpcProvider for querying
-   */
-  static getAnynetStaticProvider = (chainId: NetworkId) => {
-    return new StaticJsonRpcProvider(NodeHelper.getMainnetURI(chainId));
+    return new StaticJsonRpcProvider(NodeHelper.getMainnetURI(137));
   };
 
   /**
    * returns Array of APIURIs where NOT on invalidNodes list
    */
-  static getNodesUris = (networkId: NetworkId) => {
+  static getNodesUris = (networkId: number) => {
     let allURIs = EnvHelper.getAPIUris(networkId);
-    const invalidNodes = NodeHelper.currentRemovedNodesURIs;
+    let invalidNodes = NodeHelper.currentRemovedNodesURIs;
     // filter invalidNodes out of allURIs
     // this allows duplicates in allURIs, removes both if invalid, & allows both if valid
     allURIs = allURIs.filter(item => !invalidNodes.includes(item));
@@ -180,10 +162,10 @@ export class NodeHelper {
    * - _maxFailedConnections fails in < _failedConnectionsMinutesLimit sends the node to the invalidNodes list
    * returns an Array of working mainnet nodes
    */
-  static checkAllNodesStatus = async (networkId: NetworkId) => {
+  static checkAllNodesStatus = async (networkId: number) => {
     return await Promise.all(
       NodeHelper.getNodesUris(networkId).map(async URI => {
-        const workingUrl = await NodeHelper.checkNodeStatus(URI, networkId);
+        let workingUrl = await NodeHelper.checkNodeStatus(URI, networkId);
         return workingUrl;
       }),
     );
@@ -193,7 +175,7 @@ export class NodeHelper {
    * 403 errors are not caught by fetch so we check response.status, too
    * this func returns a workingURL string or false;
    */
-  static checkNodeStatus = async (url: string, networkId: NetworkId) => {
+  static checkNodeStatus = async (url: string, networkId: number) => {
     // 1. confirm peerCount > 0 (as a HexValue)
     let liveURL;
     liveURL = await NodeHelper.queryNodeStatus({
@@ -223,11 +205,11 @@ export class NodeHelper {
     url: string;
     body: string;
     nodeMethod: string;
-    networkId: NetworkId;
+    networkId: number;
   }) => {
     let liveURL: boolean | string;
     try {
-      const resp = await fetch(url, {
+      let resp = await fetch(url, {
         method: "POST",
         mode: "cors",
         headers: {
@@ -239,7 +221,7 @@ export class NodeHelper {
         throw Error("failed node connection");
       } else {
         // response came back but is it healthy?
-        const jsonResponse = await resp.json();
+        let jsonResponse = await resp.json();
         if (NodeHelper.validityCheck({ nodeMethod, resultVal: jsonResponse.result })) {
           liveURL = url;
         } else {

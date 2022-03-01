@@ -71,32 +71,6 @@ const commonSettings = {
     },
   },
   overrides: {
-    MuiSwitch: {
-      root: {
-        width: 28,
-        height: 16,
-        padding: 0,
-        display: "flex",
-      },
-      switchBase: {
-        padding: 2,
-        "&$checked": {
-          transform: "translateX(12px)",
-          "& + $track": {
-            opacity: 1,
-          },
-        },
-      },
-      track: {
-        borderRadius: 16 / 2,
-        opacity: 1,
-      },
-      thumb: {
-        width: 12,
-        height: 12,
-        boxShadow: "none",
-      },
-    },
     MuiCssBaseline: {
       "@global": {
         "@font-face": fonts,
@@ -169,7 +143,7 @@ const commonSettings = {
     },
     MuiDrawer: {
       root: {
-        width: "280px",
+        width: "400px",
         flexShrink: 0,
       },
       paper: {
@@ -182,7 +156,7 @@ const commonSettings = {
     },
     MuiBackdrop: {
       root: {
-        // backdropFilter: "blur(15px)",
+        backdropFilter: "blur(1px)",
         zIndex: 0,
       },
     },

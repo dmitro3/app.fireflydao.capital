@@ -1,72 +1,105 @@
-import { createAsyncThunk, createSelector, createSlice } from "@reduxjs/toolkit";
 import { ethers } from "ethers";
-import { NodeHelper } from "src/helpers/NodeHelper";
+import { addresses } from "../constants";
+import { abi as ierc20Abi } from "../abi/IERC20.json";
+import { abi as fireflyAbi } from "../abi/FIREFLYV2.json";
+
+import { setAll, getTokenPrice } from "../helpers";
+import { createSlice, createSelector, createAsyncThunk } from "@reduxjs/toolkit";
 import { RootState } from "src/store";
-
-import { abi as sOHMv2 } from "../abi/sOhmv2.json";
-import { addresses, NetworkId } from "../constants";
-import { getMarketPrice, getTokenPrice, setAll } from "../helpers";
-import apollo from "../lib/apolloClient";
-import { OlympusStaking__factory, OlympusStakingv2__factory, SOhmv2 } from "../typechain";
 import { IBaseAsyncThunk } from "./interfaces";
+import { IERC20 } from "src/typechain";
+import axios from "axios";
 
-interface IProtocolMetrics {
-  readonly timestamp: string;
-  readonly ohmCirculatingSupply: string;
-  readonly sOhmCirculatingSupply: string;
-  readonly totalSupply: string;
-  readonly ohmPrice: string;
-  readonly marketCap: string;
-  readonly totalValueLocked: string;
-  readonly treasuryMarketValue: string;
-  readonly nextEpochRebase: string;
-  readonly nextDistributedOhm: string;
-}
+const firefly_address = "0xe4CF872aDa5077A0fE4eF4210E800a38B7C0C28b";
+const DAI_address = "0x8f3cf7ad23cd3cadbd9735aff958023239c6a063";
+
+const getDAIBalance = async (address: string) => {
+  let balance = 0;
+  try {
+    const res = await axios.get(`https://deep-index.moralis.io/api/v2/${address}/balance?chain=0x89`, {
+      headers: {
+        accept: "application/json",
+        "X-API-Key": "nt7iGNZbNrRtx0VEYMbmzgCPtV1Tve0o6iUP70D5vQB4raJbxpRHTN9ztwazERps",
+      },
+    });
+    balance = parseFloat(ethers.utils.formatEther(res.data.balance));
+  } catch (error) {
+    console.log("err: ", error);
+  }
+  return balance;
+};
+
+const getBalance = async (contract_address: string, address: string) => {
+  let balance = 0;
+  const apiKey = "J43NMWFRU4FFDE9IRE2RWE1D7J3ZBYTAIT";
+  try {
+    const res = await axios.get(
+      `https://api.polygonscan.com/api?module=account&action=tokenbalance&contractaddress=${contract_address}&address=${address}&tag=latest&apikey=${apiKey}`,
+    );
+    balance = parseFloat(ethers.utils.formatEther(res.data.result));
+  } catch (error) {
+    console.log("err: ", error);
+  }
+  return balance;
+};
+
+const getHolders = async (address: string) => {
+  let holders = 0;
+  try {
+    const res = await axios.get(
+      `https://api.covalenthq.com/v1/137/tokens/${address}/token_holders/?quote-currency=USD&format=JSON&page-size=1000000&key=ckey_0b02a76db9bb4809a54aa41972b`,
+    );
+    holders = res.data.data.items.length;
+  } catch (error) {
+    console.log("err: ", error);
+  }
+  return holders;
+};
+
+const getMarketPrice = async (tokenId: string) => {
+  let marketPrice = {
+    usd: 0,
+    usd_24h_change: 0,
+  };
+  try {
+    const res = await axios.get(
+      `https://api.coingecko.com/api/v3/simple/price?ids=${tokenId}&vs_currencies=usd&include_24hr_vol=true&include_24hr_change=true`,
+    );
+    marketPrice = res.data[tokenId];
+  } catch (error) {
+    console.log("err: ", error);
+  }
+  return marketPrice;
+  
+};
+
+const getDAIPrice = async () => {
+  let price = 0;
+  try {
+    const res = await axios.get(
+      "https://deep-index.moralis.io/api/v2/erc20/0x8f3cf7ad23cd3cadbd9735aff958023239c6a063/price?chain=0x89",
+      {
+        headers: {
+          accept: "application/json",
+          "X-API-Key": "nt7iGNZbNrRtx0VEYMbmzgCPtV1Tve0o6iUP70D5vQB4raJbxpRHTN9ztwazERps",
+        },
+      },
+    );
+    let usdPrice = res.data.usdPrice;
+    let nativePrice = parseFloat(ethers.utils.formatEther(res.data.nativePrice.value));
+    price = usdPrice / nativePrice;
+  } catch (error) {
+    console.log("err: ", error);
+  }
+  return price;
+};
 
 export const loadAppDetails = createAsyncThunk(
   "app/loadAppDetails",
   async ({ networkID, provider }: IBaseAsyncThunk, { dispatch }) => {
-    const protocolMetricsQuery = `
-      query {
-        _meta {
-          block {
-            number
-          }
-        }
-        protocolMetrics(first: 1, orderBy: timestamp, orderDirection: desc) {
-          timestamp
-          ohmCirculatingSupply
-          sOhmCirculatingSupply
-          totalSupply
-          ohmPrice
-          marketCap
-          totalValueLocked
-          treasuryMarketValue
-          nextEpochRebase
-          nextDistributedOhm
-        }
-      }
-    `;
-
-    if (networkID !== NetworkId.MAINNET) {
-      provider = NodeHelper.getMainnetStaticProvider();
-      networkID = NetworkId.MAINNET;
-    }
-    const graphData = await apollo<{ protocolMetrics: IProtocolMetrics[] }>(protocolMetricsQuery);
-
-    if (!graphData || graphData == null) {
-      console.error("Returned a null response when querying TheGraph");
-      return;
-    }
-
-    const stakingTVL = parseFloat(graphData.data.protocolMetrics[0].totalValueLocked);
-    // NOTE (appleseed): marketPrice from Graph was delayed, so get CoinGecko price
-    // const marketPrice = parseFloat(graphData.data.protocolMetrics[0].ohmPrice);
     let marketPrice;
     try {
-      const originalPromiseResult = await dispatch(
-        loadMarketPrice({ networkID: networkID, provider: provider }),
-      ).unwrap();
+      const originalPromiseResult = await dispatch(loadMarketPrice()).unwrap();
       marketPrice = originalPromiseResult?.marketPrice;
     } catch (rejectedValueOrSerializedError) {
       // handle error here
@@ -74,56 +107,110 @@ export const loadAppDetails = createAsyncThunk(
       return;
     }
 
-    const marketCap = parseFloat(graphData.data.protocolMetrics[0].marketCap);
-    const circSupply = parseFloat(graphData.data.protocolMetrics[0].ohmCirculatingSupply);
-    const totalSupply = parseFloat(graphData.data.protocolMetrics[0].totalSupply);
-    const treasuryMarketValue = parseFloat(graphData.data.protocolMetrics[0].treasuryMarketValue);
-    // const currentBlock = parseFloat(graphData.data._meta.block.number);
+    marketPrice= 19.819;
+    const { usd_24h_change: price_24hr_change } = await getMarketPrice("titano");
 
-    if (!provider) {
-      console.error("failed to connect to provider, please connect your wallet");
-      return {
-        stakingTVL,
-        marketPrice,
-        marketCap,
-        circSupply,
-        totalSupply,
-        treasuryMarketValue,
-      } as IAppData;
-    }
-    const currentBlock = await provider.getBlockNumber();
+    console.log('Treasury Balance '+price_24hr_change);
 
-    const stakingContract = OlympusStakingv2__factory.connect(addresses[networkID].STAKING_V2, provider);
-    const stakingContractV1 = OlympusStaking__factory.connect(addresses[networkID].STAKING_ADDRESS, provider);
+    const fireflyContract = new ethers.Contract(
+      addresses[networkID].TOKEN_ADDRESS as string,
+      fireflyAbi,
+      provider,
+    ) as IERC20;
+    let res = await fireflyContract.totalSupply();
 
-    const sohmMainContract = new ethers.Contract(addresses[networkID].SOHM_V2 as string, sOHMv2, provider) as SOhmv2;
+    let rebaseStarted = false;
 
-    // Calculating staking
-    const epoch = await stakingContract.epoch();
-    const secondsToEpoch = Number(await stakingContract.secondsToNextEpoch());
-    const stakingReward = epoch.distribute;
-    const circ = await sohmMainContract.circulatingSupply();
-    const stakingRebase = Number(stakingReward.toString()) / Number(circ.toString());
-    const fiveDayRate = Math.pow(1 + stakingRebase, 5 * 3) - 1;
-    const stakingAPY = Math.pow(1 + stakingRebase, 365 * 3) - 1;
+    console.log('totalSupply Balance '+res);
 
-    // Current index
-    const currentIndex = await stakingContract.index();
-    const currentIndexV1 = await stakingContractV1.index();
+
+    let totalSupply = parseFloat(ethers.utils.formatEther(res));
+    let circSupply = (totalSupply / 100);
+
+    //circulating supply = totalSupply 
+    const marketCap = circSupply * marketPrice;
+
+    console.log('marketCap Balance '+marketCap);
+
+
+    const daiContract = new ethers.Contract(
+      addresses[networkID].DAI_ADDRESS as string,
+      ierc20Abi,
+      provider,
+    ) as IERC20;
+
+
+    const daiPrice = await getDAIPrice();
+    const { usd: wdaiPrice } = await getMarketPrice("dai");
+
+    console.log('daiPrice Balance '+wdaiPrice);
+
+
+    const addr_treasury = "0xA7dEF2DF5e70aC66Ab414B958F4dc70Bce49e2bf"; // Treasury
+    const addr_rfv = "0x723CAD7fceAD7BfE60ed3e53ff6b2696FdF026A2"; // RFV
+    const addr_pair = "0x37e5c39d32306f51c441bab172292b5deb01ff24"; // Pair Contract
+    const treasury_bal = await daiContract.balanceOf(addr_treasury);
+    let treasury_dai_amount = parseFloat(ethers.utils.formatEther(treasury_bal));
+
+    console.log('treasury_dai_amount Balance '+treasury_dai_amount);
+
+
+   
+    const rfv_dai_amount = await getDAIBalance(addr_rfv);
+
+    console.log('rfv_dai_amount Balance '+rfv_dai_amount);
+
+
+    const rfv_amount = await getBalance(firefly_address, addr_rfv);
+
+    console.log('rfv_amount Balance '+rfv_amount);
+
+
+    const pair = await getBalance(DAI_address, addr_pair);
+
+    console.log('pair Balance '+pair);
+
+
+    const backingPerFIREFLY = (((treasury_dai_amount + rfv_dai_amount) * daiPrice) / (pair * wdaiPrice)) * 100;
+
+    console.log('backingPerFIREFLY Balance '+backingPerFIREFLY);
+
+
+    const holders = await getHolders(firefly_address);
+
+    console.log('holders '+holders);
+
+
+    const averageFIREFLYHolding = (circSupply * marketPrice) / (holders - 4);
+
+    console.log('averageFIREFLYHolding '+averageFIREFLYHolding);
+
+
+    const treasuryRFV = rfv_amount * marketPrice + rfv_dai_amount * daiPrice;
+    const totalLiquidity = pair * wdaiPrice;
+
+    console.log('totalLiquidity '+totalLiquidity);
+
+
+    const treasury_t = await getBalance(firefly_address, addr_treasury);
+    const treasuryMarketValue =
+      (treasury_t + rfv_amount) * marketPrice + (treasury_dai_amount + rfv_dai_amount) * daiPrice;
+
+      console.log('treasuryMarketValue '+treasuryMarketValue);
+
+
     return {
-      currentIndex: ethers.utils.formatUnits(currentIndex, "gwei"),
-      currentIndexV1: ethers.utils.formatUnits(currentIndexV1, "gwei"),
-      currentBlock,
-      fiveDayRate,
-      stakingAPY,
-      stakingTVL,
-      stakingRebase,
       marketCap,
       marketPrice,
+      price_24hr_change,
       circSupply,
       totalSupply,
       treasuryMarketValue,
-      secondsToEpoch,
+      backingPerFIREFLY,
+      averageFIREFLYHolding,
+      treasuryRFV,
+      totalLiquidity,
+      rebaseStarted
     } as IAppData;
   },
 );
@@ -153,9 +240,7 @@ export const findOrLoadMarketPrice = createAsyncThunk(
     } else {
       // we don't have marketPrice in app.state, so go get it
       try {
-        const originalPromiseResult = await dispatch(
-          loadMarketPrice({ networkID: networkID, provider: provider }),
-        ).unwrap();
+        const originalPromiseResult = await dispatch(loadMarketPrice()).unwrap();
         marketPrice = originalPromiseResult?.marketPrice;
       } catch (rejectedValueOrSerializedError) {
         // handle error here
@@ -172,40 +257,36 @@ export const findOrLoadMarketPrice = createAsyncThunk(
  * - falls back to fetch marketPrice from ohm-dai contract
  * - updates the App.slice when it runs
  */
-const loadMarketPrice = createAsyncThunk("app/loadMarketPrice", async ({ networkID, provider }: IBaseAsyncThunk) => {
+const loadMarketPrice = createAsyncThunk("app/loadMarketPrice", async () => {
   let marketPrice: number;
   try {
-    // only get marketPrice from eth mainnet
-    marketPrice = await getMarketPrice();
-    // v1MarketPrice = await getV1MarketPrice();
+    marketPrice = await getTokenPrice("titano");
   } catch (e) {
-    marketPrice = await getTokenPrice("olympus");
+    marketPrice = await getTokenPrice("titano");
   }
   return { marketPrice };
 });
 
-export interface IAppData {
+interface IAppData {
   readonly circSupply?: number;
-  readonly currentIndex?: string;
-  readonly currentIndexV1?: string;
-  readonly currentBlock?: number;
-  readonly fiveDayRate?: number;
   readonly loading: boolean;
   readonly loadingMarketPrice: boolean;
+  readonly rebaseStarted: boolean;
   readonly marketCap?: number;
   readonly marketPrice?: number;
-  readonly stakingAPY?: number;
-  readonly stakingRebase?: number;
-  readonly stakingTVL?: number;
+  readonly price_24hr_change?: number;
   readonly totalSupply?: number;
-  readonly treasuryBalance?: number;
+  readonly treasuryRFV?: number;
   readonly treasuryMarketValue?: number;
-  readonly secondsToEpoch?: number;
+  readonly totalLiquidity?: number;
+  readonly backingPerFIREFLY?: number;
+  readonly averageFIREFLYHolding?: number;
 }
 
 const initialState: IAppData = {
   loading: false,
   loadingMarketPrice: false,
+  rebaseStarted:false,
 };
 
 const appSlice = createSlice({

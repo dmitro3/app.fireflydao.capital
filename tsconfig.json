@@ -15,13 +15,13 @@
     "skipLibCheck": true,
     "allowJs": true,
     "allowSyntheticDefaultImports": true,
-    "strict": true,
-    "forceConsistentCasingInFileNames": true,
+    "strict": false,
+    "forceConsistentCasingInFileNames": false,
     "isolatedModules": true,
     "noEmit": true,
     "noFallthroughCasesInSwitch": true
   },
   "include": ["./index.d.ts", "src", "babel.config.js", "**/*.test.ts", "**/*.test.tsx"],
   "exclude": ["node_modules", "vendor", "public"],
-  "compileOnSave": false
+  "compileOnSave": true
 }

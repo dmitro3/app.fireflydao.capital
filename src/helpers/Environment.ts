@@ -1,5 +1,3 @@
-import { NetworkId } from "src/networkDetails";
-
 /**
  * Access `process.env` in an environment helper
  * Usage: `EnvHelper.env`
@@ -11,7 +9,7 @@ export class EnvHelper {
    * @returns `process.env`
    */
   static env = process.env;
-  // static alchemyEthereumTestnetURI = `https://eth-rinkeby.alchemyapi.io/v2/${EnvHelper.env.REACT_APP_ETHEREUM_TESTNET_ALCHEMY}`;
+  static alchemyEthereumTestnetURI = `https://eth-rinkeby.alchemyapi.io/v2/${EnvHelper.env.REACT_APP_ETHEREUM_TESTNET_ALCHEMY}`;
   static alchemyArbitrumTestnetURI = `https://arb-rinkeby.g.alchemy.com/v2/${EnvHelper.env.REACT_APP_ARBITRUM_TESTNET_ALCHEMY}`;
   static alchemyAvalancheTestnetURI = ``;
 
@@ -29,17 +27,6 @@ export class EnvHelper {
     return EnvHelper.env.REACT_APP_GA_API_KEY;
   }
 
-  static getCovalentKey() {
-    let CKEYS: string[] = [];
-    if (EnvHelper.env.REACT_APP_COVALENT && EnvHelper.isNotEmpty(EnvHelper.env.REACT_APP_COVALENT)) {
-      CKEYS = EnvHelper.env.REACT_APP_COVALENT.split(EnvHelper.whitespaceRegex);
-    } else {
-      console.warn("you must set at least 1 REACT_APP_COVALENT key in your ENV");
-    }
-    const randomIndex = Math.floor(Math.random() * CKEYS.length);
-    return CKEYS[randomIndex];
-  }
-
   static isNotEmpty(envVariable: string) {
     if (envVariable.length > 10) {
       return true;
@@ -52,13 +39,13 @@ export class EnvHelper {
    * in development environment will return the `ethers` community api key so that devs don't need to add elements to their .env
    * @returns Array of Alchemy API URIs or empty set
    */
-  static getAlchemyAPIKeyList(networkId: NetworkId): string[] {
+  static getAlchemyAPIKeyList(networkId: number): string[] {
     let ALCHEMY_ID_LIST: string[] = [];
     let uriPath: string;
 
     // If in production, split the provided API keys on whitespace. Otherwise use default.
     switch (networkId) {
-      case NetworkId.MAINNET:
+      case 1:
         if (
           EnvHelper.env.NODE_ENV !== "development" &&
           EnvHelper.env.REACT_APP_ETHEREUM_ALCHEMY_IDS &&
@@ -70,18 +57,7 @@ export class EnvHelper {
         }
         uriPath = "https://eth-mainnet.alchemyapi.io/v2/";
         break;
-      case NetworkId.TESTNET_RINKEBY:
-        if (
-          EnvHelper.env.REACT_APP_ETHEREUM_TESTNET_ALCHEMY &&
-          EnvHelper.isNotEmpty(EnvHelper.env.REACT_APP_ETHEREUM_TESTNET_ALCHEMY)
-        ) {
-          ALCHEMY_ID_LIST = EnvHelper.env.REACT_APP_ETHEREUM_TESTNET_ALCHEMY.split(EnvHelper.whitespaceRegex);
-        } else {
-          ALCHEMY_ID_LIST = ["aF5TH9E9RGZwaAUdUd90BNsrVkDDoeaO"];
-        }
-        uriPath = "https://eth-rinkeby.alchemyapi.io/v2/";
-        break;
-      case NetworkId.ARBITRUM:
+      case 42161:
         if (
           EnvHelper.env.NODE_ENV !== "development" &&
           EnvHelper.env.REACT_APP_ARBITRUM_ALCHEMY_IDS &&
@@ -93,18 +69,7 @@ export class EnvHelper {
         }
         uriPath = "https://arb-mainnet.alchemyapi.io/v2/";
         break;
-      case NetworkId.POLYGON:
-        if (
-          EnvHelper.env.REACT_APP_POLYGON_ALCHEMY_IDS &&
-          EnvHelper.isNotEmpty(EnvHelper.env.REACT_APP_POLYGON_ALCHEMY_IDS)
-        ) {
-          ALCHEMY_ID_LIST = EnvHelper.env.REACT_APP_POLYGON_ALCHEMY_IDS.split(EnvHelper.whitespaceRegex);
-        } else {
-          ALCHEMY_ID_LIST = [];
-        }
-        uriPath = "https://polygon-mainnet.g.alchemy.com/v2";
-        break;
-      case NetworkId.AVALANCHE:
+      case 43114:
         if (
           EnvHelper.env.NODE_ENV !== "development" &&
           EnvHelper.env.REACT_APP_AVALANCHE_ALCHEMY_IDS &&
@@ -150,10 +115,10 @@ export class EnvHelper {
    * - functionality for Websocket addresses has been deprecated due to issues with WalletConnect
    *     - WalletConnect Issue: https://github.com/WalletConnect/walletconnect-monorepo/issues/193
    */
-  static getSelfHostedNode(networkId: NetworkId) {
+  static getSelfHostedNode(networkId: number) {
     let URI_LIST: string[] = [];
     switch (networkId) {
-      case NetworkId.MAINNET:
+      case 1:
         if (
           EnvHelper.env.REACT_APP_ETHEREUM_SELF_HOSTED_NODE &&
           EnvHelper.isNotEmpty(EnvHelper.env.REACT_APP_ETHEREUM_SELF_HOSTED_NODE)
@@ -161,7 +126,7 @@ export class EnvHelper {
           URI_LIST = EnvHelper.env.REACT_APP_ETHEREUM_SELF_HOSTED_NODE.split(new RegExp(EnvHelper.whitespaceRegex));
         }
         break;
-      case NetworkId.ARBITRUM:
+      case 42161:
         if (
           EnvHelper.env.REACT_APP_ARBITRUM_SELF_HOSTED_NODE &&
           EnvHelper.isNotEmpty(EnvHelper.env.REACT_APP_ARBITRUM_SELF_HOSTED_NODE)
@@ -169,28 +134,12 @@ export class EnvHelper {
           URI_LIST = EnvHelper.env.REACT_APP_ARBITRUM_SELF_HOSTED_NODE.split(new RegExp(EnvHelper.whitespaceRegex));
         }
         break;
-      case NetworkId.AVALANCHE:
+      case 43114:
         if (
           EnvHelper.env.REACT_APP_AVALANCHE_SELF_HOSTED_NODE &&
           EnvHelper.isNotEmpty(EnvHelper.env.REACT_APP_AVALANCHE_SELF_HOSTED_NODE)
         ) {
           URI_LIST = EnvHelper.env.REACT_APP_AVALANCHE_SELF_HOSTED_NODE.split(new RegExp(EnvHelper.whitespaceRegex));
-        }
-        break;
-      case NetworkId.POLYGON:
-        if (
-          EnvHelper.env.REACT_APP_POLYGON_SELF_HOSTED_NODE &&
-          EnvHelper.isNotEmpty(EnvHelper.env.REACT_APP_POLYGON_SELF_HOSTED_NODE)
-        ) {
-          URI_LIST = EnvHelper.env.REACT_APP_POLYGON_SELF_HOSTED_NODE.split(new RegExp(EnvHelper.whitespaceRegex));
-        }
-        break;
-      case NetworkId.FANTOM:
-        if (
-          EnvHelper.env.REACT_APP_FANTOM_SELF_HOSTED_NODE &&
-          EnvHelper.isNotEmpty(EnvHelper.env.REACT_APP_FANTOM_SELF_HOSTED_NODE)
-        ) {
-          URI_LIST = EnvHelper.env.REACT_APP_FANTOM_SELF_HOSTED_NODE.split(new RegExp(EnvHelper.whitespaceRegex));
         }
         break;
     }
@@ -202,57 +151,58 @@ export class EnvHelper {
    * in prod if .env is blank API connections will fail
    * @returns array of API urls
    */
-  static getAPIUris(networkId: NetworkId) {
+  static getAPIUris(networkId: number) {
     let ALL_URIs = EnvHelper.getSelfHostedNode(networkId);
-    if (ALL_URIs.length === 0) {
-      console.warn("API keys must be set in the .env, reverting to fallbacks");
-      ALL_URIs = EnvHelper.getFallbackURIs(networkId);
-    }
+    // Debug log
+    // console.log("uris", EnvHelper.getAlchemyAPIKeyList(), EnvHelper.getSelfHostedSockets());
+    // ALL_URIs = [...EnvHelper.getAlchemyAPIKeyList(networkId), ...EnvHelper.getSelfHostedNode(networkId)];
+    // if (ALL_URIs.length === 0) console.error("API keys must be set in the .env");
     return ALL_URIs;
   }
 
-  static getFallbackURIs(networkId: NetworkId) {
+  
+
+  /**
+ * "intelligently" loadbalances production API Keys
+ * @returns string
+ */
+   static getMainnetURI(): string { 
+      return "https://polygon-mainnet.infura.io/v3/1030b8cbec174e90a95d512d970c2a0e";
+    }
+
+
+
+
+  static getFallbackURIs(networkId: number) {
     const ALL_URIs = [...EnvHelper.getAlchemyAPIKeyList(networkId), ...EnvHelper.getInfuraIdList()];
     return ALL_URIs;
   }
 
-  /**
-   * Indicates whether the give feature is enabled (default: true).
-   *
-   * The feature is disabled when:
-   * - REACT_APP_GIVE_ENABLED is false
-   *
-   * @param url
-   * @returns
-   */
-  static isGiveEnabled(url: string): boolean {
-    const giveEnabled = EnvHelper.env.REACT_APP_GIVE_ENABLED;
+  static getGeoapifyAPIKey() {
+    var apiKey = EnvHelper.env.REACT_APP_GEOAPIFY_API_KEY;
+    if (!apiKey) {
+      console.warn("Missing REACT_APP_GEOAPIFY_API_KEY environment variable");
+      return null;
+    }
 
-    // If the variable isn't set, we default to true.
-    // We also want to be case-insensitive.
-    if (giveEnabled !== undefined && giveEnabled.toLowerCase() === "false") return false;
-
-    return true;
+    return apiKey;
   }
 
-  /**
-   * Indicates whether mockSohm is enabled.
-   * This is needed for easily manually testing rebases
-   * for Give on testnet
-   *
-   * The feature is enabled when:
-   * - REACT_APP_MOCK_SOHM_ENABLED is true
-   * - mock_sohm parameter is present
-   *
-   * @param url
-   * @returns
-   */
-  static isMockSohmEnabled(url: string): boolean {
-    const mockSohmEnabled = EnvHelper.env.REACT_APP_MOCK_SOHM_ENABLED;
-    const mockSohmEnabledParameter = url && url.includes("mock_sohm");
+  static getZapperAPIKey() {
+    // EnvHelper.env.REACT_APP_ZAPPER_API
+    let apiKey = EnvHelper.env.REACT_APP_ZAPPER_API;
+    if (!apiKey) {
+      console.warn("zaps won't work without REACT_APP_ZAPPER_API key");
+    }
+    return apiKey;
+  }
 
-    if (mockSohmEnabled || mockSohmEnabledParameter) return true;
-
-    return false;
+  static getZapperPoolAddress() {
+    // EnvHelper.env.REACT_APP_ZAPPER_POOL
+    let zapPool = EnvHelper.env.REACT_APP_ZAPPER_POOL;
+    if (!zapPool) {
+      console.warn("zaps won't work without REACT_APP_ZAPPER_POOL address");
+    }
+    return zapPool;
   }
 }

@@ -1,7 +1,6 @@
 import { BigNumber, ethers } from "ethers";
+import { addresses } from "../constants";
 import { trim } from "src/helpers";
-
-import { addresses, NetworkId } from "../constants";
 
 /**
  * Calculates user's odds of winning based on their pool balance
@@ -15,11 +14,7 @@ export const calculateOdds = (usersPoolBalance: string, totalPoolDeposits: numbe
   if (usersPoolBalance === undefined || Number(usersPoolBalance) === 0 || parseFloat(usersPoolBalance) === 0) {
     userOdds = "ngmi";
   } else {
-    const uBal = Number(usersPoolBalance);
-    if (uBal < 0 || totalPoolDeposits < uBal || winners < 1) {
-      throw new Error("Invalid parameter values");
-    }
-    userOdds = 1 / (1 - Math.pow((totalPoolDeposits - uBal) / totalPoolDeposits, winners));
+    userOdds = 1 / (1 - Math.pow((totalPoolDeposits - Number(usersPoolBalance)) / totalPoolDeposits, winners));
   }
   return userOdds;
 };
@@ -66,11 +61,11 @@ export const secondsToDaysForInput = (seconds: number) => {
  * @param networkId
  * @returns [PrizePoolURI, PoolDetailsURI]
  */
-export const poolTogetherUILinks = (networkId: NetworkId): Array<string> => {
-  // if (networkId === -1) networkId = 1;
+export const poolTogetherUILinks = (networkId: number): Array<string> => {
+  console.log("poolTogetherUILinks networkId: ", networkId);
   const contractAddress = addresses[networkId].PT_PRIZE_POOL_ADDRESS;
 
-  if (networkId === NetworkId.TESTNET_RINKEBY) {
+  if (networkId === 4) {
     return [
       `https://community.pooltogether.com/pools/rinkeby/${contractAddress}/home`,
       `https://community.pooltogether.com/pools/rinkeby/${contractAddress}/manage#stats`,
@@ -89,5 +84,5 @@ export const poolTogetherUILinks = (networkId: NetworkId): Array<string> => {
  * @param odds current odds as number or a string representing 0 odds
  * @param precision the amount of decimal places to display, defaults to 4
  */
-export const trimOdds = (odds: number | string, precision = 4) =>
+export const trimOdds = (odds: number | string, precision: number = 4) =>
   typeof odds === "string" ? odds : trim(odds, precision);
